@@ -1,6 +1,5 @@
 from .activate import ActivateAccountMixin
 from .email import EmailMixin
-from .login import LoginOtpMixin, LoginOtpVerifyMixin, SageLoginMixin
 from .otp import VerifyOtpMixin
 from .password import (
     ForgetPasswordConfirmMixin,
@@ -11,18 +10,16 @@ from .phone import PhoneOtpMixin
 from .reactivate import ReactivationMixin
 from .signup import UserCreationMixin
 from .resend import ResendMixin
+
 __all__ = [
-    "VerifyOtpMixin",
-    "ForgetPasswordMixin",
-    "ForgetPasswordDoneMixin",
-    "ForgetPasswordConfirmMixin",
-    "EmailMixin",
-    "UserCreationMixin",
-    "ReactivationMixin",
-    "LoginOtpMixin",
-    "LoginOtpVerifyMixin",
-    "PhoneOtpMixin",
-    "SageLoginMixin",
     "ActivateAccountMixin",
-    "ResendMixin"
+    "EmailMixin",
+    "VerifyOtpMixin",
+    "ForgetPasswordConfirmMixin",
+    "ForgetPasswordDoneMixin",
+    "ForgetPasswordMixin",
+    "PhoneOtpMixin",
+    "ReactivationMixin",
+    "UserCreationMixin",
+    "ResendMixin",
 ]

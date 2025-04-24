@@ -5,7 +5,8 @@ from django.contrib.auth.forms import SetPasswordForm
 from phonenumber_field.formfields import PhoneNumberField
 
 from sage_auth.utils import set_required_fields
-from sage_auth.models import SageUser
+from django.conf import settings
+
 
 class PasswordResetFormMixin(forms.Form):
     """
@@ -51,11 +52,10 @@ class ResetPasswordConfirmsFormMixin(SetPasswordForm):
     """
 
     class Meta:
-        model = SageUser
+        model = settings.AUTH_USER_MODEL
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         for _name, field in self.fields.items():
             field.widget.attrs.update({"class": "form-control"})
-

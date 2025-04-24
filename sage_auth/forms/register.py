@@ -10,17 +10,13 @@ from sage_auth.helpers.validators import CompanyEmailValidator
 from sage_auth.models import SageUser
 from sage_auth.utils import set_required_fields
 
-class UserLoginForm(forms.ModelForm):
-    """
-    A mixin for handling dynamic user form fields and validation based on
-    specified authentication strategies.
-    and create a new user
 
-    This form includes custom fields like
-    email, phone number, and username, which are conditionally
-    required depending on the chosen authentication strategy.
-    It also manages password validation and
-    custom error handling for unique constraints on user data.
+class SageUserFormMixin(forms.ModelForm):
+    """
+    A mixin that handles dynamic field generation and validation
+    based on authentication strategies.
+
+    This must be extended by the developer.
     """
 
     password1 = forms.CharField(
@@ -37,7 +33,6 @@ class UserLoginForm(forms.ModelForm):
         fields = []
 
     def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop("request", None)
         super().__init__(*args, **kwargs)
 
         username_field, required_fields = set_required_fields()
@@ -104,6 +99,7 @@ class UserLoginForm(forms.ModelForm):
         phone_number = cleaned_data.get("phone_number")
         username = cleaned_data.get("username")
 
+        # Ensure that at least one identifier is provided
         if not email and not phone_number and not username:
             raise forms.ValidationError(
                 "You must provide at least one identifier: email, phone number, or username."
