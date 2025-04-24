@@ -10,7 +10,7 @@ from sage_auth.helpers.validators import CompanyEmailValidator
 from sage_auth.models import SageUser
 from sage_auth.utils import set_required_fields
 
-class SageUserFormMixin(forms.ModelForm):
+class UserLoginForm(forms.ModelForm):
     """
     A mixin for handling dynamic user form fields and validation based on
     specified authentication strategies.
@@ -37,6 +37,7 @@ class SageUserFormMixin(forms.ModelForm):
         fields = []
 
     def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request", None)
         super().__init__(*args, **kwargs)
 
         username_field, required_fields = set_required_fields()
@@ -137,4 +138,3 @@ class SageUserFormMixin(forms.ModelForm):
             raise ValidationError(
                 _("A user with the provided information already exists.")
             ) from error
-

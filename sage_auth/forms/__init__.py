@@ -1,4 +1,4 @@
-from .user import SageUserFormMixin
+from .user import UserLoginForm
 from .password import (
     PasswordResetFormMixin,
     ResetPasswordConfirmsFormMixin
@@ -6,7 +6,7 @@ from .password import (
 from .login import OtpLoginFormMixin
 
 __all__ = [
-    "SageUserFormMixin",
+    "UserLoginForm",
     "PasswordResetFormMixin",
     "OtpLoginFormMixin",
     "ResetPasswordConfirmsFormMixin",
