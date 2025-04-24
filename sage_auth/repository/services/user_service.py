@@ -1,8 +1,9 @@
 import logging
 from typing import Optional
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -30,12 +31,18 @@ class UserService:
             MultipleObjectsReturned: If more than one user matches the identifier.
         """
         # Validate the presence of authentication methods
-        email_password_enabled = settings.AUTHENTICATION_METHODS.get("EMAIL_PASSWORD", False)
-        phone_password_enabled = settings.AUTHENTICATION_METHODS.get("PHONE_PASSWORD", False)
+        email_password_enabled = settings.AUTHENTICATION_METHODS.get(
+            "EMAIL_PASSWORD", False
+        )
+        phone_password_enabled = settings.AUTHENTICATION_METHODS.get(
+            "PHONE_PASSWORD", False
+        )
 
         if not email_password_enabled and not phone_password_enabled:
             logger.error("No valid authentication methods are configured in settings.")
-            raise ValueError("No valid authentication methods are configured in settings.")
+            raise ValueError(
+                "No valid authentication methods are configured in settings."
+            )
 
         try:
             if email_password_enabled:

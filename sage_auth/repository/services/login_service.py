@@ -1,12 +1,13 @@
 from django.contrib.auth import authenticate
 from django.utils.translation import gettext as _
 
-from sage_auth.repository.services.user_service import UserService
 from sage_auth.helpers.exceptions import (
-    UserNotFoundException,
+    UserBlockedException,
     UserInactiveException,
-    UserBlockedException
+    UserNotFoundException,
 )
+from sage_auth.repository.services.user_service import UserService
+
 
 class LoginService:
     def __init__(self, identifier, password):
@@ -29,14 +30,18 @@ class LoginService:
         Check if the user is blocked.
         """
         if self.user.is_block:
-            raise UserBlockedException(_("Your account is blocked. Please contact support."))
+            raise UserBlockedException(
+                _("Your account is blocked. Please contact support.")
+            )
 
     def is_user_active(self):
         """
         Check if the user is active.
         """
         if not self.user.is_active:
-            raise UserInactiveException(_("Your account is inactive. Reactivation is required."))
+            raise UserInactiveException(
+                _("Your account is inactive. Reactivation is required.")
+            )
 
     def handle_login(self):
         """

@@ -11,8 +11,8 @@ from sage_otp.helpers.choices import ReasonOptions
 
 from sage_auth.mixins.email import EmailMixin
 from sage_auth.mixins.phone import PhoneOtpMixin
-from sage_auth.utils import ActivationEmailSender
 from sage_auth.signals import user_registered
+from sage_auth.utils import ActivationEmailSender
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +93,9 @@ class UserCreationMixin(CreateView, EmailMixin):
         logger.warning("Form submission invalid: %s", form.errors)
         messages.error(
             self.request,
-            _("There was an error with your submission. Please check the form and try again.")
+            _(
+                "There was an error with your submission. Please check the form and try again."
+            ),
         )
         return self.render_to_response(self.get_context_data(form=form))
 

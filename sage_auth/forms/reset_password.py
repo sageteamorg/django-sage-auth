@@ -1,6 +1,6 @@
+from django.conf import settings
 from django.contrib.auth.forms import SetPasswordForm
 from django.utils.translation import gettext_lazy as _
-from django.conf import settings
 
 
 class ResetPasswordConfrimFormMixin(SetPasswordForm):

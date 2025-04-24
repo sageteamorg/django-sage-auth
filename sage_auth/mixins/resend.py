@@ -1,9 +1,9 @@
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.http import JsonResponse, HttpResponse
-from django.shortcuts import redirect
 from django.core.exceptions import PermissionDenied
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import redirect
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import View
 from sage_otp.helpers.choices import OTPState, ReasonOptions
@@ -53,7 +53,9 @@ class ResendJsonMixin(View, EmailMixin):
                 )
 
                 if otp_instance.state == OTPState.ACTIVE:
-                    message = _("An active OTP already exists. Please check your phone for the verification code.")
+                    message = _(
+                        "An active OTP already exists. Please check your phone for the verification code."
+                    )
                 else:
                     self.create_new_otp_or_activation_link(user, request)
                     message = _("OTP has been resent successfully.")
@@ -64,14 +66,21 @@ class ResendJsonMixin(View, EmailMixin):
             response = {"status": "success", "message": message}
 
         except SageUser.DoesNotExist:
-            response = {"status": "error", "message": _("No user found with this email.")}
+            response = {
+                "status": "error",
+                "message": _("No user found with this email."),
+            }
 
         # Check if the request is an AJAX request
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
             return JsonResponse(response)
 
         # Fallback for standard requests
-        messages.add_message(request, messages.INFO if response["status"] == "success" else messages.ERROR, response["message"])
+        messages.add_message(
+            request,
+            messages.INFO if response["status"] == "success" else messages.ERROR,
+            response["message"],
+        )
         return redirect(request.META.get("HTTP_REFERER", "/"))
 
     def create_new_otp_or_activation_link(self, user, request):
@@ -84,14 +93,14 @@ class ResendJsonMixin(View, EmailMixin):
 
     def send_otp_based_on_strategy(self, user):
         if settings.AUTHENTICATION_METHODS.get("EMAIL_PASSWORD"):
-            return EmailMixin.form_valid(self, user,self.reason)
+            return EmailMixin.form_valid(self, user, self.reason)
         if settings.AUTHENTICATION_METHODS.get("PHONE_PASSWORD"):
             sms_obj = PhoneOtpMixin()
             self.request.session["reason"] = ReasonOptions.PHONE_NUMBER_ACTIVATION
             return sms_obj.send_sms_otp(user)
 
 
-class ResendMixin(View,EmailMixin):
+class ResendMixin(View, EmailMixin):
     """
     Mixin for handling resend requests for OTP or activation links.
     """
@@ -151,7 +160,7 @@ class ResendMixin(View,EmailMixin):
 
     def send_otp_based_on_strategy(self, user):
         if settings.AUTHENTICATION_METHODS.get("EMAIL_PASSWORD"):
-            return EmailMixin.form_valid(self, user,self.reason)
+            return EmailMixin.form_valid(self, user, self.reason)
         if settings.AUTHENTICATION_METHODS.get("PHONE_PASSWORD"):
             sms_obj = PhoneOtpMixin()
-            return sms_obj.send_sms_otp(user,self.reason)
+            return sms_obj.send_sms_otp(user, self.reason)

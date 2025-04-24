@@ -1,11 +1,10 @@
 from django import forms
 from django.conf import settings
-from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.forms import SetPasswordForm
+from django.utils.translation import gettext_lazy as _
 from phonenumber_field.formfields import PhoneNumberField
 
 from sage_auth.utils import set_required_fields
-from django.conf import settings
 
 
 class PasswordResetFormMixin(forms.Form):

@@ -1,5 +1,6 @@
 from django.db import models
-from .queryset import  LoginAttemptQuerySet
+
+from .queryset import LoginAttemptQuerySet
 
 
 class LoginAttemptManager(models.Manager):
@@ -35,7 +36,7 @@ class LoginAttemptManager(models.Manager):
         Aggregate metrics for the last 12 hours.
         """
         return self.get_queryset().twelve_hour_metrics()
-    
+
     def yearly_metrics(self):
         """
         Aggregate metrics for the last year.

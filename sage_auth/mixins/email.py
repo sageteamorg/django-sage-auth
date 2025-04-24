@@ -5,8 +5,8 @@ from django.utils.translation import gettext_lazy as _
 from sage_otp.helpers.choices import ReasonOptions
 from sage_otp.repository.managers.otp import OTPManager
 
-from sage_auth.utils import send_email_otp
 from sage_auth.signals import otp_generated
+from sage_auth.utils import send_email_otp
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,11 @@ class EmailMixin:
     def send_otp(self, otp, email):
         send_email_otp(otp, email)
         otp_generated.send(
-            sender=self.__class__, user=None, method="email", reason=ReasonOptions.EMAIL_ACTIVATION, otp=otp
+            sender=self.__class__,
+            user=None,
+            method="email",
+            reason=ReasonOptions.EMAIL_ACTIVATION,
+            otp=otp,
         )
         logger.debug("OTP sent to email: %s", email)
 

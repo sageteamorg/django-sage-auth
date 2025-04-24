@@ -1,10 +1,7 @@
 from .login import UserLoginForm
-from .password import (
-    PasswordResetFormMixin,
-    ResetPasswordConfirmsFormMixin
-)
-from .register import SageUserFormMixin
 from .otp import OtpLoginFormMixin
+from .password import PasswordResetFormMixin, ResetPasswordConfirmsFormMixin
+from .register import SageUserFormMixin
 
 __all__ = [
     "UserLoginForm",

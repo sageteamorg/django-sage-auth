@@ -8,8 +8,8 @@ from .password import (
 )
 from .phone import PhoneOtpMixin
 from .reactivate import ReactivationMixin
-from .signup import UserCreationMixin
 from .resend import ResendMixin
+from .signup import UserCreationMixin
 
 __all__ = [
     "ActivateAccountMixin",

@@ -3,12 +3,13 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 
+from sage_auth.strategies.combined_strategy import CombinedStrategy
 from sage_auth.strategies.email_strategy import EmailStrategy
 from sage_auth.strategies.phone_strategy import PhoneStrategy
 from sage_auth.strategies.username_strategy import UsernameStrategy
-from sage_auth.strategies.combined_strategy import CombinedStrategy
 
 User = get_user_model()
+
 
 @pytest.mark.django_db
 class TestEmailStrategy:
@@ -27,7 +28,7 @@ class TestEmailStrategy:
             "email": "newuser@example.com",
             "password": "testpassword123",
             "is_staff": True,
-            "is_superuser": False
+            "is_superuser": False,
         }
         user = strategy.create_user(user_data)
         assert user.email == "newuser@example.com"
@@ -68,7 +69,7 @@ class TestPhoneStrategy:
             "phone_number": "+9876543210",
             "password": "testpassword123",
             "is_staff": True,
-            "is_superuser": False
+            "is_superuser": False,
         }
         user = strategy.create_user(user_data)
         assert user.phone_number == "+9876543210"
@@ -102,7 +103,7 @@ class TestUsernameStrategy:
             "username": "newuser",
             "password": "testpassword123",
             "is_staff": True,
-            "is_superuser": False
+            "is_superuser": False,
         }
         user = strategy.create_user(user_data)
         assert user.username == "newuser"
@@ -123,7 +124,7 @@ class TestCombinedStrategy:
             "username": "multiuser",
             "password": "testpassword123",
             "is_staff": True,
-            "is_superuser": False
+            "is_superuser": False,
         }
         user = combined_strategy.create_user(user_data)
         assert user.email == "user@example.com"

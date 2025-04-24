@@ -1,3 +1,3 @@
 from .manager import LoginAttemptManager
 
-__all__ = ['LoginAttemptManager']
+__all__ = ["LoginAttemptManager"]

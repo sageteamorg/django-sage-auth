@@ -1,23 +1,25 @@
+import base64
 import logging
+from datetime import timedelta, timezone
+
+from django.conf import settings
 from django.contrib import messages
-from datetime import timezone, timedelta
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
+from django.core.exceptions import ImproperlyConfigured
+from django.http import HttpResponse
 from django.shortcuts import redirect
+from django.utils import timezone as django_timezone
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
 from django.views.generic import View
-from django.core.exceptions import ImproperlyConfigured
-from sage_auth.utils.email_sender import ActivationEmailSender
-from django.utils import timezone as django_timezone
-from django.conf import settings
-from django.contrib.auth.tokens import default_token_generator
-from django.http import HttpResponse
-import base64
 
 from sage_auth.signals import activation_failed, user_activated
+from sage_auth.utils.email_sender import ActivationEmailSender
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
+
 
 class ActivateAccountMixin(View):
     """
@@ -40,14 +42,10 @@ class ActivateAccountMixin(View):
         """
         if not self.success_url:
             logger.error("The 'success_url' attribute must be set.")
-            raise ImproperlyConfigured(
-                "The 'success_url' attribute must be set."
-            )
+            raise ImproperlyConfigured("The 'success_url' attribute must be set.")
         if not self.register_url:
             logger.error("The 'register_url' attribute must be set.")
-            raise ImproperlyConfigured(
-                "The 'register_url' attribute must be set."
-            )
+            raise ImproperlyConfigured("The 'register_url' attribute must be set.")
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, uidb64, token, ts):
@@ -58,15 +56,19 @@ class ActivateAccountMixin(View):
             expire = getattr(settings, "ACTIVATION_LINK_EXPIRY_MINUTES", 1)
             expiry_duration = timedelta(minutes=expire)
 
-            if django_timezone.now() - django_timezone.datetime.fromtimestamp(
-                timestamp, tz=timezone.utc
-            ) > expiry_duration:
+            if (
+                django_timezone.now()
+                - django_timezone.datetime.fromtimestamp(timestamp, tz=timezone.utc)
+                > expiry_duration
+            ):
                 logger.warning(
-                    "Activation link expired for user %s. Sending a new email.", 
-                    user.email
+                    "Activation link expired for user %s. Sending a new email.",
+                    user.email,
                 )
                 ActivationEmailSender().send_activation_email(user, request)
-                activation_failed.send(sender=self.__class__, user=user, reason="Link expired")
+                activation_failed.send(
+                    sender=self.__class__, user=user, reason="Link expired"
+                )
                 return HttpResponse(
                     "The activation link expired. A new activation email has been sent."
                 )
@@ -81,18 +83,15 @@ class ActivateAccountMixin(View):
 
                 messages.success(
                     request,
-                    "Your account has been activated successfully. You can now log in."
+                    "Your account has been activated successfully. You can now log in.",
                 )
                 return redirect(self.success_url)
             else:
-                logger.warning(
-                    "Invalid activation token for user %s.",
-                    user.email
+                logger.warning("Invalid activation token for user %s.", user.email)
+                activation_failed.send(
+                    sender=self.__class__, user=user, reason="Invalid token"
                 )
-                activation_failed.send(sender=self.__class__, user=user, reason="Invalid token")
         except (ValueError, OverflowError) as e:
             logger.error("Error in activation link processing: %s", e)
-            messages.error(
-                request, "The activation link is invalid or has expired."
-            )
+            messages.error(request, "The activation link is invalid or has expired.")
             return redirect(self.register_url)

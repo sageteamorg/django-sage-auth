@@ -1,8 +1,13 @@
-from django.db.models.functions import ExtractHour, ExtractDay, ExtractMonth, ExtractYear
-from django.db.models import Sum, Count
-from django.utils.timezone import now, timedelta
 from django.db import models
+from django.db.models import Count, Sum
+from django.db.models.functions import (
+    ExtractDay,
+    ExtractHour,
+    ExtractMonth,
+    ExtractYear,
+)
 from django.utils.timezone import now, timedelta
+
 
 class LoginAttemptQuerySet(models.QuerySet):
     def sum_metrics(self, start_time=None, end_time=None):
@@ -15,9 +20,9 @@ class LoginAttemptQuerySet(models.QuerySet):
         if end_time:
             query = query.filter(timestamp__lt=end_time)
         return query.aggregate(
-            total_failed_attempts=Sum('failed_attempts') or 0,
-            total_admin_logins=Sum('admin_logins') or 0,
-            total_logins=Sum('total_logins') or 0,
+            total_failed_attempts=Sum("failed_attempts") or 0,
+            total_admin_logins=Sum("admin_logins") or 0,
+            total_logins=Sum("total_logins") or 0,
         )
 
     def monthly_metrics(self):
@@ -27,13 +32,20 @@ class LoginAttemptQuerySet(models.QuerySet):
         end_time = now()
         start_time = end_time - timedelta(days=365)  # Last 12 months
         query = self.filter(timestamp__gte=start_time, timestamp__lt=end_time)
-        
+
         # Annotate with the month and year for unique month/year combinations
-        monthly_data = query.annotate(month=ExtractMonth('timestamp'), year=ExtractYear('timestamp')).values('month', 'year').annotate(
-            total_attempts=Sum('total_logins') + Sum('failed_attempts'),
-            total_logins=Sum('total_logins'),
-            failed_attempts=Sum('failed_attempts'),
-        ).order_by('year', 'month')
+        monthly_data = (
+            query.annotate(
+                month=ExtractMonth("timestamp"), year=ExtractYear("timestamp")
+            )
+            .values("month", "year")
+            .annotate(
+                total_attempts=Sum("total_logins") + Sum("failed_attempts"),
+                total_logins=Sum("total_logins"),
+                failed_attempts=Sum("failed_attempts"),
+            )
+            .order_by("year", "month")
+        )
 
         # Ensure all 12 months are represented
         current_month = end_time.month
@@ -55,7 +67,7 @@ class LoginAttemptQuerySet(models.QuerySet):
                 monthly_metrics[key] = data["total_attempts"]
 
         return {
-            "months": [month.split('-')[1] for month in months],  # Extract month names
+            "months": [month.split("-")[1] for month in months],  # Extract month names
             "totals": list(monthly_metrics.values()),
         }
 
@@ -66,17 +78,30 @@ class LoginAttemptQuerySet(models.QuerySet):
         end_time = now()
         start_time = end_time - timedelta(days=7)
         query = self.filter(timestamp__gte=start_time, timestamp__lt=end_time)
-        weekly_data = query.annotate(day=ExtractDay('timestamp')).values('day').annotate(
-            total_attempts=Sum('total_logins') + Sum('failed_attempts'),
-            total_logins=Sum('total_logins'),
-            failed_attempts=Sum('failed_attempts'),
-        ).order_by('day')
+        weekly_data = (
+            query.annotate(day=ExtractDay("timestamp"))
+            .values("day")
+            .annotate(
+                total_attempts=Sum("total_logins") + Sum("failed_attempts"),
+                total_logins=Sum("total_logins"),
+                failed_attempts=Sum("failed_attempts"),
+            )
+            .order_by("day")
+        )
 
         # Ensure all 7 days are represented
-        day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        day_names = [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday",
+        ]
         weekly_metrics = {day: {"total_attempts": 0} for day in range(1, 8)}
         for data in weekly_data:
-            weekly_metrics[data['day']] = {
+            weekly_metrics[data["day"]] = {
                 "total_attempts": data["total_attempts"],
                 "total_logins": data["total_logins"],
                 "failed_attempts": data["failed_attempts"],
@@ -94,16 +119,21 @@ class LoginAttemptQuerySet(models.QuerySet):
         end_time = now()
         start_time = end_time - timedelta(days=30)
         query = self.filter(timestamp__gte=start_time, timestamp__lt=end_time)
-        daily_data = query.annotate(day=ExtractDay('timestamp')).values('day').annotate(
-            total_attempts=Sum('total_logins') + Sum('failed_attempts'),
-            total_logins=Sum('total_logins'),
-            failed_attempts=Sum('failed_attempts'),
-        ).order_by('day')
+        daily_data = (
+            query.annotate(day=ExtractDay("timestamp"))
+            .values("day")
+            .annotate(
+                total_attempts=Sum("total_logins") + Sum("failed_attempts"),
+                total_logins=Sum("total_logins"),
+                failed_attempts=Sum("failed_attempts"),
+            )
+            .order_by("day")
+        )
 
         # Ensure all 30 days are represented
         daily_metrics = {day: {"total_attempts": 0} for day in range(1, 31)}
         for data in daily_data:
-            daily_metrics[data['day']] = {
+            daily_metrics[data["day"]] = {
                 "total_attempts": data["total_attempts"],
                 "total_logins": data["total_logins"],
                 "failed_attempts": data["failed_attempts"],
@@ -121,16 +151,21 @@ class LoginAttemptQuerySet(models.QuerySet):
         end_time = now()
         start_time = end_time - timedelta(hours=24)
         query = self.filter(timestamp__gte=start_time, timestamp__lt=end_time)
-        hourly_data = query.annotate(hour=ExtractHour('timestamp')).values('hour').annotate(
-            total_attempts=Sum('total_logins') + Sum('failed_attempts'),
-            total_logins=Sum('total_logins'),
-            failed_attempts=Sum('failed_attempts'),
-        ).order_by('hour')
+        hourly_data = (
+            query.annotate(hour=ExtractHour("timestamp"))
+            .values("hour")
+            .annotate(
+                total_attempts=Sum("total_logins") + Sum("failed_attempts"),
+                total_logins=Sum("total_logins"),
+                failed_attempts=Sum("failed_attempts"),
+            )
+            .order_by("hour")
+        )
 
         # Ensure all 24 hours are represented
         hourly_metrics = {hour: {"total_attempts": 0} for hour in range(1, 25)}
         for data in hourly_data:
-            hourly_metrics[data['hour']] = {
+            hourly_metrics[data["hour"]] = {
                 "total_attempts": data["total_attempts"],
                 "total_logins": data["total_logins"],
                 "failed_attempts": data["failed_attempts"],
@@ -148,17 +183,24 @@ class LoginAttemptQuerySet(models.QuerySet):
         end_time = now()
         start_time = end_time - timedelta(hours=12)
         query = self.filter(timestamp__gte=start_time, timestamp__lt=end_time)
-        hourly_data = query.annotate(hour=ExtractHour('timestamp')).values('hour').annotate(
-            total_attempts=Sum('total_logins') + Sum('failed_attempts'),
-            total_logins=Sum('total_logins'),
-            failed_attempts=Sum('failed_attempts'),
-        ).order_by('hour')
+        hourly_data = (
+            query.annotate(hour=ExtractHour("timestamp"))
+            .values("hour")
+            .annotate(
+                total_attempts=Sum("total_logins") + Sum("failed_attempts"),
+                total_logins=Sum("total_logins"),
+                failed_attempts=Sum("failed_attempts"),
+            )
+            .order_by("hour")
+        )
 
         # Ensure all 12 hours are represented
-        last_12_hours = [(end_time - timedelta(hours=i)).hour for i in reversed(range(12))]
+        last_12_hours = [
+            (end_time - timedelta(hours=i)).hour for i in reversed(range(12))
+        ]
         hourly_metrics = {hour: {"total_attempts": 0} for hour in last_12_hours}
         for data in hourly_data:
-            hourly_metrics[data['hour']] = {
+            hourly_metrics[data["hour"]] = {
                 "total_attempts": data["total_attempts"],
                 "total_logins": data["total_logins"],
                 "failed_attempts": data["failed_attempts"],
@@ -168,7 +210,7 @@ class LoginAttemptQuerySet(models.QuerySet):
             "hours": last_12_hours,
             "totals": [entry["total_attempts"] for entry in hourly_metrics.values()],
         }
-    
+
     def yearly_metrics(self):
         """
         Aggregate yearly metrics for the last 5 years.
@@ -176,13 +218,18 @@ class LoginAttemptQuerySet(models.QuerySet):
         end_time = now()
         start_time = end_time - timedelta(days=365 * 5)
         query = self.filter(timestamp__gte=start_time, timestamp__lt=end_time)
-        yearly_data = query.annotate(year=ExtractYear('timestamp')).values('year').annotate(
-            total_attempts=Sum('total_logins') + Sum('failed_attempts'),
-            total_logins=Sum('total_logins'),
-            failed_attempts=Sum('failed_attempts'),
-        ).order_by('year')
+        yearly_data = (
+            query.annotate(year=ExtractYear("timestamp"))
+            .values("year")
+            .annotate(
+                total_attempts=Sum("total_logins") + Sum("failed_attempts"),
+                total_logins=Sum("total_logins"),
+                failed_attempts=Sum("failed_attempts"),
+            )
+            .order_by("year")
+        )
 
         return {
-            "years": [data['year'] for data in yearly_data],
+            "years": [data["year"] for data in yearly_data],
             "totals": [data["total_attempts"] for data in yearly_data],
         }

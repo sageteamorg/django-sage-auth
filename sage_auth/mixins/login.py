@@ -1,15 +1,16 @@
 from django.conf import settings
 from django.contrib import messages
-from django.urls import reverse_lazy
-from django.shortcuts import redirect
 from django.contrib.auth.views import LoginView
+from django.shortcuts import redirect
+from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
-from sage_auth.repository.services import LoginService
+
 from sage_auth.helpers.exceptions import (
-    UserNotFoundException,
+    UserBlockedException,
     UserInactiveException,
-    UserBlockedException
+    UserNotFoundException,
 )
+from sage_auth.repository.services import LoginService
 
 
 class LoginViewMixin(LoginView):
@@ -35,17 +36,22 @@ class LoginViewMixin(LoginView):
             messages.error(self.request, str(e))
         except UserInactiveException as e:
             # Handle reactivation notification in the view
-            strategy = getattr(settings, 'AUTH_STRATEGY', 'email')
-            if strategy == 'email':
-                messages.warning(self.request, _("An email has been sent to reactivate your account."))
-            elif strategy == 'phone_number':
-                messages.warning(self.request, _("An SMS has been sent to reactivate your account."))
-            
-            self.request.session['otp_identifier'] = identifier
-            return redirect(reverse_lazy('otp_verification'))
+            strategy = getattr(settings, "AUTH_STRATEGY", "email")
+            if strategy == "email":
+                messages.warning(
+                    self.request,
+                    _("An email has been sent to reactivate your account."),
+                )
+            elif strategy == "phone_number":
+                messages.warning(
+                    self.request, _("An SMS has been sent to reactivate your account.")
+                )
+
+            self.request.session["otp_identifier"] = identifier
+            return redirect(reverse_lazy("otp_verification"))
 
         # Redirect to login page with errors
-        return redirect(reverse_lazy('login'))
+        return redirect(reverse_lazy("login"))
 
     def form_invalid(self, form):
         """

@@ -5,7 +5,6 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.utils.translation import gettext_lazy as _
-from django.contrib.auth import get_user_model
 from phonenumber_field.formfields import PhoneNumberField
 
 from sage_auth.helpers.validators import CompanyEmailValidator

@@ -5,6 +5,7 @@ from phonenumber_field.formfields import PhoneNumberField
 
 from sage_auth.utils import set_required_fields
 
+
 class OtpLoginFormMixin(forms.Form):
     """
     A form mixin for OTP-based login, supporting dynamic identifier fields

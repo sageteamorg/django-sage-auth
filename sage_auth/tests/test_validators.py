@@ -1,8 +1,9 @@
 # sage_auth/tests/test_validators.py
 
 import pytest
-from django.core.exceptions import ValidationError
 from django.conf import settings
+from django.core.exceptions import ValidationError
+
 from sage_auth.helpers.validators import CompanyEmailValidator
 
 

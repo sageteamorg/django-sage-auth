@@ -1,21 +1,19 @@
 from django.conf import settings
 
+
 def set_required_fields():
     """
-    Determines and sets the `USERNAME_FIELD` and `REQUIRED_FIELDS` for user 
+    Determines and sets the `USERNAME_FIELD` and `REQUIRED_FIELDS` for user
     authentication based on enabled authentication methods in settings.
 
-    This function inspects `settings.AUTHENTICATION_METHODS` to dynamically 
-    select the primary identifier (`USERNAME_FIELD`) 
+    This function inspects `settings.AUTHENTICATION_METHODS` to dynamically
+    select the primary identifier (`USERNAME_FIELD`)
     and any additional required fields for user creation
-    or login (e.g., email, phone number, username). 
+    or login (e.g., email, phone number, username).
 
     """
     if not any(settings.AUTHENTICATION_METHODS.values()):
-        auth_methods = {
-            "EMAIL_PASSWORD": True,
-            "USERNAME_PASSWORD": True
-        }
+        auth_methods = {"EMAIL_PASSWORD": True, "USERNAME_PASSWORD": True}
         settings.AUTHENTICATION_METHODS = auth_methods
 
     username_field = None

@@ -1,17 +1,17 @@
 # sage_auth/tests/test_utils.py
 
 import pytest
-from django.core import mail
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core import mail
 from django.core.exceptions import ValidationError
 from django.test import RequestFactory
 
 from sage_auth.utils import (
+    ActivationEmailSender,
+    get_backends,
     send_email_otp,
     set_required_fields,
-    ActivationEmailSender,
-    get_backends
 )
 
 User = get_user_model()
@@ -53,7 +53,9 @@ class TestUtils:
             ),
         ],
     )
-    def test_set_required_fields(self, auth_methods, expected_username, expected_required_fields):
+    def test_set_required_fields(
+        self, auth_methods, expected_username, expected_required_fields
+    ):
         """Test that the set_required_fields function correctly identifies the username
         field and required fields.
         """
@@ -76,15 +78,13 @@ class TestUtils:
     #     # user.is_active = True
     #     # user.save()
 
-    
     @pytest.mark.django_db
     def test_get_backends(self):
         """Test the get_backends function with real SMS backend."""
         sms_provider = get_backends()
         assert sms_provider is not None, "SMS provider should not be None"
-        recipient_number = "+1234567890" 
+        recipient_number = "+1234567890"
         message_content = "This is a test message for get_backends function."
 
         result = sms_provider.send_one_message(recipient_number, message_content)
         assert result == None
-

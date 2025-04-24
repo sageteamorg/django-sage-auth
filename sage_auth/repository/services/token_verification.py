@@ -5,14 +5,13 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.utils import timezone as tz
-
+from sage_otp.helpers.choices import OTPState, ReasonOptions
 from sage_otp.models import OTP
 from sage_otp.repository.managers.otp import OTPManager
-from sage_otp.helpers.choices import OTPState, ReasonOptions
 
 from sage_auth.models import SageUser
-from sage_auth.utils import get_backends, send_email_otp
 from sage_auth.signals import otp_expired, otp_failed, otp_verified
+from sage_auth.utils import get_backends, send_email_otp
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +62,7 @@ class OTPVerificationService:
     >>> if result["success"]:
     >>>     print("OTP verified successfully!")
     """
+
     def __init__(self, request, user_identifier, reason):
         self.request = request
         self.user_identifier = user_identifier
@@ -99,7 +99,9 @@ class OTPVerificationService:
         >>>     print("No user found.")
         """
         try:
-            logger.debug("Attempting to retrieve user by identifier: %s", self.user_identifier)
+            logger.debug(
+                "Attempting to retrieve user by identifier: %s", self.user_identifier
+            )
             if "@" in self.user_identifier:
                 user = SageUser.objects.get(email=self.user_identifier)
             else:
@@ -113,7 +115,9 @@ class OTPVerificationService:
     def verify_otp(self, user, entered_otp):
         try:
             logger.debug("Verifying OTP for user ID: %s", user.id)
-            otp_instance = self.otp_manager.get_otp(identifier=user.id, reason=self.reason)
+            otp_instance = self.otp_manager.get_otp(
+                identifier=user.id, reason=self.reason
+            )
 
             otp_max_attempts = getattr(settings, "OTP_MAX_FAILED_ATTEMPTS", 4)
             otp_expiry_time = otp_instance.last_sent_at + timedelta(
@@ -122,9 +126,7 @@ class OTPVerificationService:
             time_left_to_expire = (otp_expiry_time - tz.now()).total_seconds()
 
             if time_left_to_expire <= 0:
-                logger.warning(
-                    "OTP expired for user ID: %s. Sending new OTP.", user.id
-                )
+                logger.warning("OTP expired for user ID: %s. Sending new OTP.", user.id)
                 otp_instance.update_state(OTPState.EXPIRED)
                 otp_expired.send(sender=self.__class__, user=user, reason=self.reason)
                 self.send_new_otp(user)
@@ -132,7 +134,8 @@ class OTPVerificationService:
 
             if otp_instance.failed_attempts_count >= otp_max_attempts:
                 logger.warning(
-                    "Maximum OTP attempts reached for user ID: %s. Sending new OTP.", user.id
+                    "Maximum OTP attempts reached for user ID: %s. Sending new OTP.",
+                    user.id,
                 )
                 otp_failed.send(
                     sender=self.__class__,
@@ -149,7 +152,9 @@ class OTPVerificationService:
                 user.is_active = True
                 user.save()
                 otp_instance.save()
-                otp_verified.send(sender=self.__class__, user=user, success=True, reason=self.reason)
+                otp_verified.send(
+                    sender=self.__class__, user=user, success=True, reason=self.reason
+                )
                 return {"success": True, "status": "verified", "user": user}
             else:
                 otp_instance.failed_attempts_count += 1
@@ -203,17 +208,23 @@ class OTPVerificationService:
         try:
             if "@" in self.user_identifier:
                 logger.debug("Generating new OTP for user ID: %s via email.", user.id)
-                otp_data = self.otp_manager.get_or_create_otp(identifier=user.id, reason=self.reason)
+                otp_data = self.otp_manager.get_or_create_otp(
+                    identifier=user.id, reason=self.reason
+                )
                 send_email_otp(otp_data[0].token, user.email)
                 logger.info("New OTP sent via email to user ID: %s", user.id)
             else:
                 logger.debug("Generating new OTP for user ID: %s via SMS.", user.id)
-                otp_data = self.otp_manager.get_or_create_otp(identifier=user.id, reason=self.reason)
+                otp_data = self.otp_manager.get_or_create_otp(
+                    identifier=user.id, reason=self.reason
+                )
                 sms_obj = get_backends()
                 sms_obj.send_one_message(str(user.phone_number), otp_data[0].token)
                 logger.info("New OTP sent via SMS to user ID: %s", user.id)
         except Exception as e:
-            logger.error("Failed to send new OTP to user ID: %s. Error: %s", user.id, str(e))
+            logger.error(
+                "Failed to send new OTP to user ID: %s. Error: %s", user.id, str(e)
+            )
 
     def block_user(self, user):
         """
@@ -244,11 +255,19 @@ class OTPVerificationService:
             user.is_active = False
             user.save()
 
-            otp_instance = self.otp_manager.get_otp(identifier=user.id, reason=self.reason)
+            otp_instance = self.otp_manager.get_otp(
+                identifier=user.id, reason=self.reason
+            )
             otp_instance.state = OTPState.EXPIRED
             otp_instance.save()
-            logger.info("User ID %s successfully blocked and all OTPs expired.", user.id)
+            logger.info(
+                "User ID %s successfully blocked and all OTPs expired.", user.id
+            )
         except OTP.DoesNotExist:
-            logger.error("Failed to retrieve OTP instance for blocking user ID: %s", user.id)
+            logger.error(
+                "Failed to retrieve OTP instance for blocking user ID: %s", user.id
+            )
         except Exception as e:
-            logger.critical("Error while blocking user ID: %s. Error: %s", user.id, str(e))
+            logger.critical(
+                "Error while blocking user ID: %s. Error: %s", user.id, str(e)
+            )

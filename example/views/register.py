@@ -1,7 +1,8 @@
 from django.urls import reverse_lazy
 
-from ..forms.register import UserCreationForm
 from sage_auth.mixins.signup import UserCreationMixin
+
+from ..forms.register import UserCreationForm
 
 
 class RegisterView(UserCreationMixin):
