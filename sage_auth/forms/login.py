@@ -1,3 +1,5 @@
+import logging
+
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -9,6 +11,8 @@ from phonenumber_field.formfields import PhoneNumberField
 
 from sage_auth.helpers.validators import CompanyEmailValidator
 from sage_auth.utils import set_required_fields
+
+logger = logging.getLogger(__name__)
 
 
 class UserLoginForm(forms.ModelForm):
@@ -86,19 +90,16 @@ class UserLoginForm(forms.ModelForm):
         self.fields["password2"] = self.fields.pop("password2")
 
     def clean_password1(self):
-        """Validate the password using Django's default password validators."""
         password = self.cleaned_data.get("password1")
         if password:
             try:
                 validate_password(password)
             except ValidationError as e:
+                logger.warning("Password validation failed: %s", e)
                 raise forms.ValidationError(e) from e
         return password
 
     def clean(self):
-        """Validate that the required fields have been filled correctly and passwords
-        match.
-        """
         cleaned_data = super().clean()
 
         email = cleaned_data.get("email")
@@ -106,6 +107,7 @@ class UserLoginForm(forms.ModelForm):
         username = cleaned_data.get("username")
 
         if not email and not phone_number and not username:
+            logger.warning("Validation failed: No identifier provided.")
             raise forms.ValidationError(
                 "You must provide at least one identifier: email, phone number, or username."
             )
@@ -114,6 +116,7 @@ class UserLoginForm(forms.ModelForm):
         password2 = cleaned_data.get("password2")
 
         if password1 and password2 and password1 != password2:
+            logger.warning("Password mismatch during login attempt.")
             raise forms.ValidationError("The two password fields must match.")
 
         return cleaned_data
@@ -128,15 +131,16 @@ class UserLoginForm(forms.ModelForm):
         }
 
     def save(self, commit=True):
-        """Save the custom user using the dynamic strategy."""
         user_data = self.get_user_data()
         User = get_user_model()
         try:
             with transaction.atomic():
                 strategy = User.objects.get_authentication_strategies(user_data)
                 user = strategy.create_user(user_data)
-            return user
+                logger.info("User created successfully: %s", user)
+                return user
         except IntegrityError as error:
+            logger.error("User creation failed due to integrity error: %s", error)
             raise ValidationError(
                 _("A user with the provided information already exists.")
             ) from error
